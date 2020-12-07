@@ -340,101 +340,157 @@ int main() {
 ### 5.树状数组
 
 ```c++
-int c[100005];
- 
-int lowbit(int x) {
-    return x & (-x);
+const int N = 500005;
+int c[N], n, m;
+
+int lowbit(int x) {
+    return x & (-x);
 }
- 
-void upd(int i, int k) {
-    while (i <= n) {
-        c[i] += k;
-        i += lowbit(i);
-    }
+
+void upd(int i, int k) {
+    while (i <= n) {
+        c[i] += k;
+        i += lowbit(i);
+    }
 }
- 
-int getSum(int i) {
-    int res = 0;
-    while (i > 0) {
-        res += c[i];
-        i -= lowbit(i);
-    }
-    return res;
+
+int getSum(int i) {
+    int res = 0;
+    while (i > 0) {
+        res += c[i];
+        i -= lowbit(i);
+    }
+    return res;
 }
 ```
 
-### 6.主席树
+### 6.主席树1(可持久化数组)
 
 ```c++
-const int maxn = 1e5 + 10;
-int n, m;
-int cnt;
+const int N = 1000005;
+int n, m, cnt;
+int a[N], root[N];
 
 struct node {
-    int L, R;//分别指向左右子树
-    int sum;//该节点所管辖区间范围内数的个数
-    node() {
-        sum = 0;
+    int l, r, val;
+} tree[N * 20];
+
+void buildTree(int i, int l, int r) {
+    cnt = max(cnt, i);
+    if (l == r) {
+        tree[i].val = a[l];
+        return ;
     }
-} Tree[maxn * 20];
-
-struct value {
-    int x;//值的大小
-    int id;//离散之前在原数组中的位置
-} Value[maxn];
-
-bool cmp(value v1, value v2) {
-    return v1.x < v2.x;
+    tree[i].l = 2 * i;
+    tree[i].r = 2 * i + 1;
+    int mid = (l + r) / 2;
+    buildTree(tree[i].l, l, mid);
+    buildTree(tree[i].r, mid + 1, r);
 }
 
-int root[maxn];//多颗线段树的根节点
-int rk[maxn];//原数组离散之后的数组
-void init() {
-    cnt = 1;
-    root[0] = 0;
-    Tree[0].L = Tree[0].R = Tree[0].sum = 0;
+int upd(int i, int l, int r, int x, int k) {
+    tree[++cnt] = tree[i];
+    i = cnt;
+    if (l == r) {
+        tree[i].val = k;
+        return i;
+    }
+    int mid = (l + r) / 2;
+    if (x <= mid) tree[i].l = upd(tree[i].l, l, mid, x, k);
+    else tree[i].r = upd(tree[i].r, mid + 1, r, x, k);  
+    return i;
 }
 
-void update(int num, int &rt, int l, int r) {
-    Tree[cnt++] = Tree[rt];
-    rt = cnt - 1;
-    Tree[rt].sum++;
-    if (l == r) return;
-    int mid = (l + r) >> 1;
-    if (num <= mid) update(num, Tree[rt].L, l, mid);
-    else update(num, Tree[rt].R, mid + 1, r);
-}
-
-int query(int i, int j, int k, int l, int r) {
-    int d = Tree[Tree[j].L].sum - Tree[Tree[i].L].sum;
-    if (l == r) return l;
-    int mid = (l + r) >> 1;
-    if (k <= d) return query(Tree[i].L, Tree[j].L, k, l, mid);
-    else return query(Tree[i].R, Tree[j].R, k - d, mid + 1, r);
+int query(int i, int l, int r, int x) {
+    if (l == r) return tree[i].val;
+    int mid = (l + r) / 2;
+    if (x <= mid) return query(tree[i].l, l, mid, x);
+    else return query(tree[i].r, mid + 1, r, x);
 }
 
 int main() {
-    scanf("%d%d", &n, &m);
-    for (int i = 1; i <= n; i++) {
-        scanf("%d", &Value[i].x);
-        Value[i].id = i;
+    ios::sync_with_stdio(false); cin.tie(0);
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++) cin >> a[i];
+    buildTree(1, 1, n);
+    root[0] = 1;
+    for (int i = 1; i <= m; i++) {
+        int v, op;
+        cin >> v >> op;
+        if (op == 1) {
+            int x, k;
+            cin >> x >> k;
+            root[i] = upd(root[v], 1, n, x, k);
+        }
+        if (op == 2) {
+            int x;
+            cin >> x;
+            root[i] = root[v];
+            cout << query(root[v], 1, n, x) << '\n';
+        }
     }
-    //进行离散化
-    sort(Value + 1, Value + n + 1, cmp);
-    for (int i = 1; i <= n; i++) {
-        rk[Value[i].id] = i;
+    // cout << endl;
+    system("pause");
+}
+```
+
+### 7.主席树2(区间第k大)
+
+```c++
+const int N = 200005;
+int n, m, cnt;
+int root[N], rk[N];
+
+struct node {
+    int l, r, sum;
+} tree[N * 20];
+
+struct value {
+    int x, id;
+
+    bool operator <(const value a) const {
+        return x < a.x;
     }
-    init();
+} val[N];
+
+void upd(int num, int &rt, int l, int r) {
+    tree[++cnt] = tree[rt];
+    rt = cnt;
+    tree[rt].sum++;
+    if (l == r) return;
+    int mid = (l + r) / 2;
+    if (num <= mid) upd(num, tree[rt].l, l, mid);
+    else upd(num, tree[rt].r, mid + 1, r);
+}
+
+int query(int i, int j, int k, int l, int r) {
+    int d = tree[tree[j].l].sum - tree[tree[i].l].sum;
+    if (l == r) return l;
+    int mid = (l + r) / 2;
+    if (k <= d) return query(tree[i].l, tree[j].l, k, l, mid);
+    else return query(tree[i].r, tree[j].r, k - d, mid + 1, r);
+}
+
+int main() {
+    ios::sync_with_stdio(false); cin.tie(0);
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++) {
+        cin >> val[i].x;
+        val[i].id = i;
+    }
+    sort(val + 1, val + n + 1);
+    for (int i = 1; i <= n; i++) rk[val[i].id] = i;
+    cnt = root[0] = tree[0].l = tree[0].r = tree[0].sum = 0;
     for (int i = 1; i <= n; i++) {
         root[i] = root[i - 1];
-        update(rk[i], root[i], 1, n);
+        upd(rk[i], root[i], 1, n);
     }
-    int left, right, k;
     for (int i = 1; i <= m; i++) {
-        scanf("%d%d%d", &left, &right, &k);
-        printf("%d\n", Value[query(root[left - 1], root[right], k, 1, n)].x);
+        int l, r, k;
+        cin >> l >> r >> k;
+        cout << val[query(root[l - 1], root[r], k, 1, n)].x << "\n";
     }
-    return 0;
+    system("pause");
 }
 ```
 

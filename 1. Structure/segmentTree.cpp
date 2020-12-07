@@ -6,19 +6,21 @@ typedef long long ll;
 const int mod = 1e9 + 7;
 //const int mod = 998244353;
 const int inf = 1e9;
-
-const int maxn = 1e5 + 5;
-int a[maxn];
-ll lazy[4 * maxn];
+// 
+// Luogu3372【模板】线段树 1
+// 
+const int N = 1e5 + 5;
+int a[N];
+ll lazy[4 * N];
 
 struct node {
     int l, r;
     ll sum, mx;
-} tree[4 * maxn];
+} tree[4 * N];
 
 void push_up(int i) {
     tree[i].sum = tree[2 * i].sum + tree[2 * i + 1].sum;
-    // tree[i].mx = max(tree[2 * i].mx, tree[2 * i + 1].mx);
+    tree[i].mx = max(tree[2 * i].mx, tree[2 * i + 1].mx);
 }
 
 void buildTree(int i, int l, int r) {
@@ -27,7 +29,7 @@ void buildTree(int i, int l, int r) {
     lazy[i] = 0;
     if (l == r) {
         tree[i].sum = a[l];
-        // tree[i].mx = a[l];
+        tree[i].mx = a[l];
         return;
     }
     int mid = (l + r) / 2;
@@ -40,8 +42,8 @@ void push_down(int i) {
     if (lazy[i]) {
         tree[2 * i].sum += (tree[2 * i].r - tree[2 * i].l + 1) * lazy[i];
         tree[2 * i + 1].sum += (tree[2 * i + 1].r - tree[2 * i + 1].l + 1) * lazy[i];
-        // tree[2 * i].mx += lazy[i];
-        // tree[2 * i + 1].mx += lazy[i];
+        tree[2 * i].mx += lazy[i];
+        tree[2 * i + 1].mx += lazy[i];
         lazy[2 * i] += lazy[i];
         lazy[2 * i + 1] += lazy[i];
         lazy[i] = 0;
@@ -51,7 +53,7 @@ void push_down(int i) {
 void upd(int i, int x, int y, ll k) {
     if (x <= tree[i].l && y >= tree[i].r) {
         tree[i].sum += (tree[i].r - tree[i].l + 1) * k;
-        // tree[i].mx += k;
+        tree[i].mx += k;
         lazy[i] += k;
         return;
     }

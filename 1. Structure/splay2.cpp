@@ -7,6 +7,9 @@ typedef long long ll;
 const int mod = 1e9 + 7;
 //const int mod = 998244353;
 const int inf = 1e9;
+// 
+// Luogu3391 【模板】文艺平衡树
+// 
 const int N = 1e5 + 5;
 int root = 0, tot = 0, n, m, a[N], lazy[N];
 
