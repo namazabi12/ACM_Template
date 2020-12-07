@@ -3,8 +3,8 @@
 ### 1.并查集
 
 ```c++
-const int maxn = 1e5 + 5;
-int fa[maxn];
+const int N = 1e5 + 5;
+int fa[N];
  
 int ff(int x) {
     return fa[x] == x ? x : fa[x] = ff(fa[x]);
@@ -24,14 +24,14 @@ int uni(int x, int y) {
 ### 2.线段树
 
 ```c++
-const int maxn = 1e5 + 5;
-int a[maxn];
-ll lazy[4 * maxn];
+const int N = 1e5 + 5;
+int a[N];
+ll lazy[4 * N];
 
 struct node {
     int l, r;
     ll sum, mx;
-} tree[4 * maxn];
+} tree[4 * N];
 
 void push_up(int i) {
     tree[i].sum = tree[2 * i].sum + tree[2 * i + 1].sum;

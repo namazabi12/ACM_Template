@@ -6,8 +6,11 @@ typedef long long ll;
 const int mod = 1e9 + 7;
 //const int mod = 998244353;
 const int inf = 1e9;
-const int maxn = 1e5 + 5;
-int fa[maxn];
+// 
+// Luogu3367 【模板】并查集
+// 
+const int N = 1e5 + 5;
+int fa[N];
 
 int ff(int x) {
     return fa[x] == x ? x : fa[x] = ff(fa[x]);
